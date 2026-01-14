@@ -1,341 +1,176 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Flappy Bird Vietnamese Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #70c5ce;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            touch-action: manipulation;
-        }
-        #game-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        canvas {
-            display: block;
-            background-color: #70c5ce;
-            box-shadow: 0 0 20px rgba(0,0,0,0.2);
-            max-width: 100%;
-            max-height: 100%;
-            cursor: pointer;
-        }
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .score-display {
-            position: absolute;
-            top: 20px;
-            font-size: 48px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 2px 2px 0 #000;
-            pointer-events: none;
-        }
-        #menu {
-            pointer-events: auto;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 2rem;
-            border-radius: 1rem;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            display: block;
-            min-width: 280px;
-        }
-        .btn {
-            background: #f7941d;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.1s, background 0.2s;
-            margin-top: 1rem;
-            width: 100%;
-        }
-        .btn:active {
-            transform: scale(0.95);
-            background: #d67d16;
-        }
-        .medal {
-            width: 60px;
-            height: 60px;
-            margin: 10px auto;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            border: 3px solid #333;
-        }
-        .medal-none { background: #e2e8f0; border-color: #94a3b8; } /* Xám nhẹ */
-        .medal-silver { background: #cbd5e1; border-color: #64748b; box-shadow: 0 0 10px #94a3b8; } /* Bạc */
-        .medal-gold { background: #fbbf24; border-color: #b45309; box-shadow: 0 0 15px #fbbf24; } /* Vàng */
-    </style>
+<meta charset="UTF-8">
+<title>Flappy Bird Pro – Lâm Việt Thành</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    background: linear-gradient(#70c5ce,#a0e9f5);
+    font-family: Arial, sans-serif;
+}
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+canvas {
+    display: block;
+    margin: auto;
+    background: transparent;
+}
+#ui {
+    position:absolute;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    pointer-events:none;
+}
+.panel {
+    background:white;
+    padding:25px;
+    border-radius:16px;
+    text-align:center;
+    box-shadow:0 10px 25px rgba(0,0,0,.3);
+    pointer-events:auto;
+}
+.btn {
+    background:#f59e0b;
+    padding:12px 20px;
+    border-radius:10px;
+    color:white;
+    font-weight:bold;
+    margin-top:15px;
+}
+.score {
+    position:absolute;
+    top:20px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:48px;
+    color:white;
+    text-shadow:3px 3px 0 black;
+}
+</style>
 </head>
+
 <body>
 
 <div id="game-container">
-    <canvas id="gameCanvas"></canvas>
-    
-    <div id="ui-layer">
-        <div id="score" class="score-display">0</div>
-        
-        <div id="menu">
-            <h1 id="menu-title" class="text-3xl font-bold mb-2 text-yellow-600">FLAPPY BIRD</h1>
-            
-            <div id="game-over-ui" class="hidden">
-                <p class="text-gray-500 uppercase tracking-widest text-sm font-bold">Kết quả</p>
-                <div id="medal-icon" class="medal"></div>
-                <p id="rank-text" class="font-bold text-lg mb-2"></p>
-                <div class="text-2xl font-black text-gray-800">ĐIỂM: <span id="last-score">0</span></div>
-            </div>
+    <canvas id="game"></canvas>
+    <div class="score" id="score">0</div>
 
-            <p id="instruction" class="text-gray-600 my-4 text-sm">Dùng <b>Chuột</b>, <b>Cách</b> hoặc <b>Mũi tên lên</b></p>
-            <button id="start-btn" class="btn">CHƠI NGAY</button>
+    <div id="ui">
+        <div id="menu" class="panel">
+            <h1 class="text-3xl font-bold text-orange-500">FLAPPY PRO</h1>
+            <p>Kỷ lục: <span id="best">0</span></p>
+            <button id="play" class="btn">Chơi</button>
         </div>
     </div>
 </div>
 
 <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const scoreElement = document.getElementById('score');
-    const menu = document.getElementById('menu');
-    const startBtn = document.getElementById('start-btn');
-    const gameOverUI = document.getElementById('game-over-ui');
-    const lastScoreValue = document.getElementById('last-score');
-    const medalIcon = document.getElementById('medal-icon');
-    const rankText = document.getElementById('rank-text');
-    const menuTitle = document.getElementById('menu-title');
-    const instruction = document.getElementById('instruction');
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const scoreEl = document.getElementById("score");
+const bestEl = document.getElementById("best");
+const menu = document.getElementById("menu");
 
-    // Cấu hình game
-    let gameRunning = false;
-    let score = 0;
-    let frames = 0;
+let W,H;
+function resize(){
+  W = canvas.width = Math.min(innerWidth,420);
+  H = canvas.height = Math.min(innerHeight,640);
+}
+window.onresize = resize; resize();
 
-    const config = {
-        gravity: 0.25,
-        jump: -4.5,
-        pipeWidth: 52,
-        pipeGap: 150,
-        pipeSpeed: 2,
-        birdX: 50,
-        birdSize: 34
-    };
+let best = localStorage.getItem("best")||0;
+bestEl.textContent = best;
 
-    let bird = {
-        y: 0,
-        velocity: 0,
-        width: 34,
-        height: 24,
-        rotation: 0
-    };
+let bird = {x:80,y:H/2,v:0};
+let pipes=[];
+let score=0;
+let playing=false;
 
-    let pipes = [];
+function reset(){
+ bird.y=H/2; bird.v=0; pipes=[]; score=0;
+ scoreEl.textContent=0;
+}
 
-    function resizeCanvas() {
-        const container = document.getElementById('game-container');
-        canvas.width = Math.min(container.clientWidth, 400);
-        canvas.height = Math.min(container.clientHeight, 600);
-        resetGame();
-    }
+function play(){
+ reset();
+ playing=true;
+ menu.style.display="none";
+ loop();
+}
 
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+document.getElementById("play").onclick=play;
+addEventListener("mousedown",()=>bird.v=-5);
+addEventListener("touchstart",()=>bird.v=-5);
+addEventListener("keydown",e=>{if(e.code=="Space")bird.v=-5});
 
-    function resetGame() {
-        bird.y = canvas.height / 2;
-        bird.velocity = 0;
-        bird.rotation = 0;
-        pipes = [];
-        score = 0;
-        frames = 0;
-        scoreElement.innerText = "0";
-    }
+function loop(){
+ if(!playing) return;
+ update(); draw();
+ requestAnimationFrame(loop);
+}
 
-    function startGame() {
-        resetGame();
-        gameRunning = true;
-        menu.style.display = 'none';
-        loop();
-    }
+function update(){
+ bird.v+=0.3;
+ bird.y+=bird.v;
+ if(bird.y<0||bird.y>H) gameOver();
 
-    function gameOver() {
-        gameRunning = false;
-        menu.style.display = 'block';
-        gameOverUI.classList.remove('hidden');
-        menuTitle.innerText = "GAME OVER";
-        lastScoreValue.innerText = score;
-        instruction.innerText = "Nhấn để thử lại";
-        
-        // Xử lý Rank/Huy chương
-        medalIcon.className = "medal"; // Reset class
-        if (score >= 20) {
-            medalIcon.classList.add('medal-gold');
-            medalIcon.innerHTML = "🥇";
-        } else if (score >= 10) {
-            medalIcon.classList.add('medal-silver');
-            medalIcon.innerHTML = "🥈";
-        } else {
-            medalIcon.classList.add('medal-none');
-            medalIcon.innerHTML = " ";
+ if(pipes.length==0||pipes[pipes.length-1].x< W-200){
+   let top = Math.random()*(H-200)+50;
+   pipes.push({x:W,top});
+ }
 
-        }
-    }
+ pipes.forEach(p=>p.x-=2);
+ pipes=pipes.filter(p=>p.x>-60);
 
-    function flap() {
-        if (!gameRunning) return;
-        bird.velocity = config.jump;
-    }
+ pipes.forEach(p=>{
+   if(80>p.x&&80<p.x+50&&(bird.y<p.top||bird.y>p.top+140))
+      gameOver();
+   if(!p.passed&&p.x<80){score++;p.passed=true;scoreEl.textContent=score;}
+ });
+}
 
-    window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' || e.code === 'ArrowUp') {
-            e.preventDefault();
-            flap();
-        }
-    });
+function gameOver(){
+ playing=false;
+ menu.style.display="block";
+ if(score>best){
+   best=score;
+   localStorage.setItem("best",best);
+   bestEl.textContent=best;
+ }
+}
 
-    canvas.addEventListener('mousedown', (e) => {
-        if (e.button === 0) flap();
-    });
+function draw(){
+ ctx.clearRect(0,0,W,H);
+ ctx.fillStyle="#70c5ce";
+ ctx.fillRect(0,0,W,H);
 
-    canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        flap();
-    }, { passive: false });
+ // bird
+ ctx.fillStyle="orange";
+ ctx.beginPath();
+ ctx.arc(80,bird.y,15,0,Math.PI*2);
+ ctx.fill();
 
-    startBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        startGame();
-    });
-
-    function drawBird() {
-        ctx.save();
-        ctx.translate(config.birdX + bird.width/2, bird.y + bird.height/2);
-        bird.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, bird.velocity * 0.1));
-        ctx.rotate(bird.rotation);
-
-        ctx.fillStyle = '#f7941d';
-        ctx.beginPath();
-        ctx.ellipse(0, 0, bird.width/2, bird.height/2, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.fillStyle = 'white';
-        ctx.beginPath();
-        ctx.arc(8, -4, 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = 'black';
-        ctx.beginPath();
-        ctx.arc(10, -4, 2, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#f15a24';
-        ctx.beginPath();
-        ctx.moveTo(12, 0);
-        ctx.lineTo(22, 2);
-        ctx.lineTo(12, 6);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = 'white';
-        ctx.beginPath();
-        ctx.ellipse(-6, 2, 8, 5, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.restore();
-    }
-
-    function drawPipes() {
-        pipes.forEach(pipe => {
-            ctx.fillStyle = '#73bf2e';
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 2;
-
-            ctx.fillRect(pipe.x, 0, config.pipeWidth, pipe.top);
-            ctx.strokeRect(pipe.x, 0, config.pipeWidth, pipe.top);
-            ctx.fillRect(pipe.x - 4, pipe.top - 20, config.pipeWidth + 8, 20);
-            ctx.strokeRect(pipe.x - 4, pipe.top - 20, config.pipeWidth + 8, 20);
-
-            const bottomY = pipe.top + config.pipeGap;
-            const bottomHeight = canvas.height - bottomY;
-            ctx.fillRect(pipe.x, bottomY, config.pipeWidth, bottomHeight);
-            ctx.strokeRect(pipe.x, bottomY, config.pipeWidth, bottomHeight);
-            ctx.fillRect(pipe.x - 4, bottomY, config.pipeWidth + 8, 20);
-            ctx.strokeRect(pipe.x - 4, bottomY, config.pipeWidth + 8, 20);
-        });
-    }
-
-    function update() {
-        if (!gameRunning) return;
-        bird.velocity += config.gravity;
-        bird.y += bird.velocity;
-        if (bird.y + bird.height > canvas.height || bird.y < 0) gameOver();
-        if (frames % 100 === 0) {
-            const minH = 50;
-            const maxH = canvas.height - config.pipeGap - minH;
-            const pipeTop = Math.floor(Math.random() * (maxH - minH + 1)) + minH;
-            pipes.push({ x: canvas.width, top: pipeTop, passed: false });
-        }
-        pipes.forEach((pipe, index) => {
-            pipe.x -= config.pipeSpeed;
-            if (config.birdX + bird.width > pipe.x && config.birdX < pipe.x + config.pipeWidth && (bird.y < pipe.top || bird.y + bird.height > pipe.top + config.pipeGap)) gameOver();
-            if (!pipe.passed && pipe.x + config.pipeWidth < config.birdX) {
-                score++;
-                pipe.passed = true;
-                scoreElement.innerText = score;
-            }
-            if (pipe.x + config.pipeWidth < 0) pipes.splice(index, 1);
-        });
-        frames++;
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#70c5ce';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        drawPipes();
-        drawBird();
-    }
-
-    function loop() {
-        if (!gameRunning) return;
-        update();
-        draw();
-        requestAnimationFrame(loop);
-    }
-
-    resetGame();
-    draw();
+ // pipes
+ ctx.fillStyle="green";
+ pipes.forEach(p=>{
+   ctx.fillRect(p.x,0,50,p.top);
+   ctx.fillRect(p.x,p.top+140,50,H);
+ });
+}
 </script>
 </body>
 </html>
+
+
 
 
